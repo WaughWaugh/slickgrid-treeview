@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Tree View</title>
+	 <link type="text/css" href="css/slickgrid/grid.css" rel="stylesheet" />
+	 <script type="text/javascript" src="js/jquery/jquery.js"></script>
+	 <script type="text/javascript" src="js/jquery/jquery-ui-1.11.3.custom.min.js"></script>
+     <script type="text/javascript" src="js/jquery/jquery.event.drag-2.2-min.js"></script>
+	 <script type="text/javascript" src="js/slickgrid/Firebug.js"></script>
+     <script type="text/javascript" src="js/slickgrid/slick.core.js"></script>
+     <script type="text/javascript" src="js/slickgrid/slick.grid.js"></script>
+     <script type="text/javascript" src="js/slickgrid/slick.dataview.js"></script>
+     <script type="text/javascript" src="js/slickgrid/slick.rowselectionmodel.js"></script>
+     <script type="text/javascript" src="js/slickgrid/slick.checkboxselectcolumn.js"></script>
+     <script type="text/javascript" src="js/slickgrid/slick.cellselectionmodel.js"></script>
+     <script type="text/javascript" src="js/slickgrid/slick.cellrangeselector.js"></script>
+     <script type="text/javascript" src="js/slickgrid/slick.cellrangedecorator.js"></script>
+     <script type="text/javascript" src="js/slickgrid/slick.cellcopymanager.js"></script>
+     <script type="text/javascript" src="js/slickgrid/slick.mapline.formatter.js"></script>
+     <script type="text/javascript" src="js/slickgrid/slick.headerfilter.js"></script>
+     <script type="text/javascript" src="js/slickgrid/slick.groupitemmetadataprovider.js"></script>
+     <script type="text/javascript" src="js/slickgrid/slick.mapline.customsearch.js"></script>
+
+     <style type="text/css">
+     	 .cell-title {
+      		font-weight: bold;
+   		 }
+
+	    .cell-effort-driven {
+	      text-align: center;
+	    }
+
+	    .toggle {
+	      height: 9px;
+	      width: 9px;
+	      display: inline-block;
+	    }
+
+	    .toggle.expand {
+	      background: url(img/expand.gif) no-repeat center center;
+	    }
+
+	    .toggle.collapse {
+	      background: url(img/collapse.gif) no-repeat center center;
+	    }
+     </style>
+     <script type="text/javascript">
+     	var toggleFormatter = function (row, cell, value, columnDef, dataContext) {
+		value = value.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+		var spacer = "<span style='display:inline-block;height:1px;width:" + (15 * dataContext["indent"]) + "px'></span>";
+		var idx = dataView.getIdxById(dataContext.id);
+		if (data[idx + 1] && data[idx + 1].indent > data[idx].indent) {
+		if (dataContext._collapsed) {
+		return spacer + " <span class='toggle expand'></span>&nbsp;" + value;
+		} else {
+		return spacer + " <span class='toggle collapse'></span>&nbsp;" + value;
+		}
+		} else {
+		return spacer + " <span class='toggle'></span>&nbsp;" + value;
+		}
+		};
+		var dataView;
+		var grid;
+		var data = [];
+		var columns = [
+		    {id: "title", name: "", field: "title", formatter: toggleFormatter}
+		  
+		];
+
+		var options = { 
+		    enableCellNavigation: true, 
+		    forceFitColumns: true
+		};
+
+		 
+
+		function myFilter(item) {
+		  
+		  if (item.parent != null) {
+		    var parent = data[item.parent.id];
+		       
+		    while (parent) {
+		      if (parent._collapsed) {
+		        return false;
+		      }
+		        parent = data[parent.parent ? parent.parent.id : null];
+		         
+		    }
+		  }
+
+		  return true;
+		}
+
+
+
+		$(function () {
+		  var indent = 0;
+		  data = [{title: '1-800-Flowers', indent: 0, parent: null},
+		  {title: 'Agoura Hills',indent: 1, parent:{id: 0}},
+		  {title: 'CA', indent: 2, parent:{id: 1}},
+		  {title: 'United States', indent: 3, parent:{id: 2}},
+		  {title: 'Alameda', indent: 1, parent:{id: 0}},
+		  {title: 'CA', indent: 2, parent: {id: 4} },
+		  {title: 'United States', indent: 3, parent:{id: 5}}]
+		    
+		  var parents = [];
+
+		  // prepare the data
+		  for (i in data) { 
+		    var d = data[i];
+		    d['id'] = i
+		 
+		      parents.push(d.parent ? d.parent['id'] : d.parent);      
+		   }
+
+		    
+		  // initialize the model
+		  dataView = new Slick.Data.DataView();
+		  dataView.beginUpdate(); 
+		  dataView.setItems(data); 
+		  dataView.setFilter(myFilter);
+		  dataView.endUpdate();
+
+
+		  // initialize the grid
+		  grid = new Slick.Grid("#myGrid", dataView, columns, options);
+
+		  grid.onCellChange.subscribe(function (e, args) {
+		    dataView.updateItem(args.item.id, args.item);
+		  });  
+
+		  grid.onClick.subscribe(function (e, args) {
+		    if ($(e.target).hasClass("toggle")) {
+		      var item = dataView.getItem(args.row);
+		      if (item) {
+		        if (!item._collapsed) {
+		          item._collapsed = true;
+		        } else {
+		          item._collapsed = false;
+		        }
+
+		        dataView.updateItem(item.id, item);
+		      }
+		      e.stopImmediatePropagation();
+		    }
+		  });
+
+		  // wire up model events to drive the grid
+		  dataView.onRowCountChanged.subscribe(function (e, args) {
+		    grid.updateRowCount();
+		    grid.render();
+		  });
+
+		  dataView.onRowsChanged.subscribe(function (e, args) {
+		    grid.invalidateRows(args.rows);
+		    grid.render();
+		  });
+		}) 
+     </script>
+</head>
+<body>
+	<div id="myGrid" style="width:600px;height:500px;"></div>
+</body>
+</html>
