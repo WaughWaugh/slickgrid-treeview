@@ -35,24 +35,30 @@
      </style>
      <script type="text/javascript">
      	var toggleFormatter = function (row, cell, value, columnDef, dataContext) {
-		value = value.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
-		var spacer = "<span style='display:inline-block;height:1px;width:" + (15 * dataContext["indent"]) + "px'></span>";
-		var idx = dataView.getIdxById(dataContext.id);
-		if (data[idx + 1] && data[idx + 1].indent > data[idx].indent) {
-		if (dataContext._collapsed) {
-		return spacer + " <span class='toggle expand'></span>&nbsp;" + value;
-		} else {
-		return spacer + " <span class='toggle collapse'></span>&nbsp;" + value;
-		}
-		} else {
-		return spacer + " <span class='toggle'></span>&nbsp;" + value;
-		}
+			value = value.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+			var spacer = "<span style='display:inline-block;height:1px;width:" + (15 * dataContext["indent"]) + "px'></span>";
+			var idx = dataView.getIdxById(dataContext.id);
+			if (data[idx + 1] && data[idx + 1].indent > data[idx].indent) {
+				if (dataContext._collapsed) {
+					return spacer + " <span class='toggle expand'></span>&nbsp;" + " <span><input type = 'checkbox'></span>" + value;
+				} else {
+					return spacer + " <span class='toggle collapse'></span>&nbsp;" + " <span><input type = 'checkbox'></span>" + value;
+				}
+			} else {
+				return spacer + " <span class='toggle'></span>&nbsp;" + " <span><input type = 'checkbox'></span>" +  value;
+			}
 		};
+
+		function CheckmarkFormatter(row, cell, value, columnDef, dataContext) {
+   			 return value ? "<img src='img/expand.gif'>" : "";
+  		}
+
 		var dataView;
 		var grid;
 		var data = [];
 		var columns = [
 		    {id: "title", name: "", field: "title", formatter: toggleFormatter}
+		    //{id: "test", name:"", field: "test", formatter: CheckmarkFormatter}
 		  
 		];
 
@@ -84,13 +90,13 @@
 
 		$(function () {
 		  var indent = 0;
-		  data = [{id:1, title: '1-800-Flowers', indent: 0, parent: null},
-		  {id:2, title: 'Agoura Hills',indent: 1, parent:{id: 0}},
-		  {id:3, title: 'CA', indent: 2, parent:{id: 1}},
-		  {id:4, title: 'United States', indent: 3, parent:{id: 2}},
-		  {id:5, title: 'Alameda', indent: 1, parent:{id: 0}},
-		  {id:6, title: 'CA', indent: 2, parent: {id: 4} },
-		  {id:7, title: 'United States', indent: 3, parent:{id: 5}}]
+		  data = [{id:1, title: '1-800-Flowers',  indent: 0, parent: null},
+		  {id:2, title: 'Agoura Hills',  indent: 1, parent:{id: 0}},
+		  {id:3, title: 'CA',  indent: 2, parent:{id: 1}},
+		  {id:4, title: 'United States',   indent: 3, parent:{id: 2}},
+		  {id:5, title: 'Alameda',  indent:  1, parent:{id: 0}},
+		  {id:6, title: 'CA',  indent: 2, parent: {id: 4} },
+		  {id:7, title: 'United States',  indent: 3, parent:{id: 5}}]
 		    		    
 		  // initialize the model
 		  dataView = new Slick.Data.DataView();
