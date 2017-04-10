@@ -3,6 +3,7 @@
 <head>
 	<title>Tree View</title>
 	 <link type="text/css" href="css/slickgrid/grid.css" rel="stylesheet" />
+	 <script src="https://use.fontawesome.com/d5c97b2a3c.js"></script>
 	 <script type="text/javascript" src="js/jquery/jquery.js"></script>
 	 <script type="text/javascript" src="js/jquery/jquery-ui-1.11.3.custom.min.js"></script>
      <script type="text/javascript" src="js/jquery/jquery.event.drag-2.2-min.js"></script>
@@ -59,11 +60,11 @@
 
      		var item = dataView.getItem(row);
      		if (item.selected === "checked") {
-     			value = " <span class='checkbox checked'></span>&nbsp;" + value;
+     			value = " <span><i class='fa fa-check-square' aria-hidden='true'></i></span>&nbsp;" + value;
      		} else if (item.selected === "unchecked") {
-     			value = " <span class='checkbox unchecked'></span>&nbsp;" + value;
+     			value = " <span><i class='fa fa-square-o' aria-hidden='true'></i></span>&nbsp;" + value;
      		} else {
-     			value = " <span class='checkbox indeterminate'></span>&nbsp;" + value;
+     			value = " <span><i class='fa fa-square' aria-hidden='true'></i></span>&nbsp;" + value;
      		}
 			
 			var spacer = "<span style='display:inline-block;height:1px;width:" + (15 * dataContext["indent"]) + "px'></span>";
@@ -197,7 +198,7 @@
 		        dataView.updateItem(item.id, item);
 		      }
 		      e.stopImmediatePropagation();
-		    } else if ($(e.target).hasClass('checkbox')) {
+		    } else if ($(e.target).hasClass('fa')) {
 		    	dataView.beginUpdate(); 
 		    	
 		    	if (item.selected === "unchecked") {
