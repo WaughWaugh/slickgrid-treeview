@@ -2,11 +2,12 @@
 <html>
 <head>
 	<title>Tree View</title>
+	 <link rel="stylesheet" href="css/uikit/uikit.min.css" />
 	 <link type="text/css" href="css/slickgrid/grid.css" rel="stylesheet" />
-	 <script src="https://use.fontawesome.com/d5c97b2a3c.js"></script>
 	 <script type="text/javascript" src="js/jquery/jquery.js"></script>
 	 <script type="text/javascript" src="js/jquery/jquery-ui-1.11.3.custom.min.js"></script>
      <script type="text/javascript" src="js/jquery/jquery.event.drag-2.2-min.js"></script>
+     <script type="text/javascript" src="js/uikit/uikit.min.js"></script>
      <script type="text/javascript" src="js/slickgrid/slick.core.js"></script>
      <script type="text/javascript" src="js/slickgrid/slick.grid.js"></script>
      <script type="text/javascript" src="js/slickgrid/slick.dataview.js"></script>
@@ -22,36 +23,19 @@
 	    }
 
 	    .toggle {
-	      height: 9px;
-	      width: 9px;
+	      height: 16px;
+	      width: 16px;
 	      display: inline-block;
 	    }
 
 	    .toggle.expand {
-	      background: url(img/expand.gif) no-repeat center center;
+	      background: url(img/plus-square-o.png) no-repeat center center;
 	    }
 
 	    .toggle.collapse {
-	      background: url(img/collapse.gif) no-repeat center center;
+	      background: url(img/minus-square-o.png) no-repeat center center;
 	    }
 
-	    /*.checkbox {
-	      height: 15px;
-	      width: 15px;
-	      display: inline-block;
-	    }
-
-	    .checkbox.checked {
-	    	background: url(img/checked.png) no-repeat center center;
-	    }
-
-	    .checkbox.unchecked {
-	    	background: url(img/unchecked.png) no-repeat center center;
-	    }
-
-	    .checkbox.indeterminate {
-	    	background: url(img/indeterminate.png) no-repeat center center;
-	    }*/
 	     
       </style>
      <script type="text/javascript">
@@ -60,11 +44,11 @@
 
      		var item = dataView.getItem(row);
      		if (item.selected === "checked") {
-     			value = " <span><i class='checkbox fa fa-check-square' aria-hidden='true'></i></span>&nbsp;" + value;
+     			value = " <span><i class='checkbox uk-icon-check-square' aria-hidden='true'></i></span>&nbsp;" + value;
      		} else if (item.selected === "unchecked") {
-     			value = " <span><i class='checkbox fa fa-square-o' aria-hidden='true'></i></span>&nbsp;" + value;
+     			value = " <span><i class='checkbox uk-icon-square-o' aria-hidden='true'></i></span>&nbsp;" + value;
      		} else {
-     			value = " <span><i class='checkbox fa fa-square' aria-hidden='true'></i></span>&nbsp;" + value;
+     			value = " <span><i class='checkbox uk-icon-square' aria-hidden='true'></i></span>&nbsp;" + value;
      		}
 			
 			var spacer = "<span style='display:inline-block;height:1px;width:" + (15 * dataContext["indent"]) + "px'></span>";
@@ -82,9 +66,9 @@
 			columnDef.width = 5;
 		};
 
-		function CheckmarkFormatter(row, cell, value, columnDef, dataContext) {
-   			 return value ? "<img src='img/expand.gif'>" : "";
-  		}
+		// function CheckmarkFormatter(row, cell, value, columnDef, dataContext) {
+  //  			 return value ? "<img src='img/expand.gif'>" : "";
+  // 		}
 
 		var dataView;
 		var grid;
