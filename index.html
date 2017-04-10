@@ -122,13 +122,13 @@
 
 		$(function () {
 		  var indent = 0;
-		  data = [{id:1, selected: 'indeterminate', title: '1-800-Flowers',  indent: 0, parent: null},
+		  data = [{id:1, selected: 'unchecked', title: '1-800-Flowers',  indent: 0, parent: null},
 		  {id:2, selected: 'unchecked', title: 'Agoura Hills',  indent: 1, parent:{id: 0}},
 		  {id:3, selected: 'unchecked', title: 'CA',  indent: 2, parent:{id: 1}},
 		  {id:4, selected: 'unchecked', title: 'United States',   indent: 3, parent:{id: 2}},
-		  {id:5, selected: 'checked', title: 'Alameda',  indent:  1, parent:{id: 0}},
-		  {id:6, selected: 'checked', title: 'CA',  indent: 2, parent: {id: 4} },
-		  {id:7, selected: 'checked', title: 'United States',  indent: 3, parent:{id: 5}}]
+		  {id:5, selected: 'unchecked', title: 'Alameda',  indent:  1, parent:{id: 0}},
+		  {id:6, selected: 'unchecked', title: 'CA',  indent: 2, parent: {id: 4} },
+		  {id:7, selected: 'unchecked', title: 'United States',  indent: 3, parent:{id: 5}}]
 		    		    
 		  // initialize the model
 		  dataView = new Slick.Data.DataView();
@@ -183,12 +183,31 @@
 		        dataView.updateItem(item.id, item);
 		      }
 		      e.stopImmediatePropagation();
-		    } else if ($(e.target).is(':checkbox')) {
-		    	var children = getChildren(args.row);
-		    	console.log(children.length);
-		    	var parent = getParent(args.row);
-		    	console.log(parent);
+		    } else if ($(e.target).hasClass('checkbox')) {
+		    	dataView.beginUpdate(); 
+		    	
+		    	if (item.selected === "unchecked") {
+		    		item.selected = "checked";
+		    		dataView.updateItem(item.id, item);
+			    	var children = getChildren(args.row);
+			    	for (let child of children) {
+			    		child.selected = "checked";
+			    		dataView.updateItem(child.id, child);
+			    	}
+		    	} else {
+		    		item.selected = "unchecked";
+		    		dataView.updateItem(item.id, item);
+			    	var children = getChildren(args.row);
+			    	for (let child of children) {
+			    		child.selected = "unchecked";
+			    		dataView.updateItem(child.id, child);
+			    	}
+
+		    	}
+		    	dataView.endUpdate();
+		    	
 		    }
+
 		  });
 
 		  // wire up model events to drive the grid
