@@ -137,6 +137,7 @@
 		  dataView.setFilter(myFilter);
 		  dataView.endUpdate();
 
+		  //TODO: Need to merge logic of these 2 function
 		  function getChildren(row) {
 		  	var currentItem = dataView.getItem(row);
 		  	var allItems = dataView.getItems();
@@ -152,6 +153,19 @@
 		  	return children;
 		  }
 
+		  function getImmediateChildren(row) {
+		  	var currentItem = dataView.getItem(row);
+		  	var allItems = dataView.getItems();
+		  	var lastIndex = allItems.length - 1;
+		  	var children = [];
+		  	for(var i = row + 1; i <= lastIndex; i++) {
+		  		if (allItems[i].parent.id == row) {
+		  			children.push(allItems[i]);
+		  		}
+		  	}
+		  	return children;
+
+		  }
 		  
 
 		  function getParent(row) {
@@ -187,28 +201,96 @@
 		    	dataView.beginUpdate(); 
 		    	
 		    	if (item.selected === "unchecked") {
-		    		item.selected = "checked";
-		    		dataView.updateItem(item.id, item);
-			    	var children = getChildren(args.row);
-			    	for (let child of children) {
-			    		child.selected = "checked";
-			    		dataView.updateItem(child.id, child);
-			    	}
+		    		checkItem(item);
 		    	} else {
-		    		item.selected = "unchecked";
-		    		dataView.updateItem(item.id, item);
-			    	var children = getChildren(args.row);
-			    	for (let child of children) {
-			    		child.selected = "unchecked";
-			    		dataView.updateItem(child.id, child);
-			    	}
-
+		    		uncheckItem(item);
 		    	}
 		    	dataView.endUpdate();
 		    	
 		    }
 
 		  });
+
+		  function checkItem(item) {
+		  	item.selected = "checked";
+    		dataView.updateItem(item.id, item);
+	    	var children = getChildren(dataView.getIdxById(item.id));
+	    	for (let child of children) {
+	    		child.selected = "checked";
+	    		dataView.updateItem(child.id, child);
+	    	}
+
+	    	updateParent(item.id, "checked");
+		  }
+
+		  function uncheckItem(item) {
+		  	item.selected = "unchecked";
+    		dataView.updateItem(item.id, item);
+	    	var children = getChildren(dataView.getIdxById(item.id));
+	    	for (let child of children) {
+	    		child.selected = "unchecked";
+	    		dataView.updateItem(child.id, child);
+	    	}
+
+	    	updateParent(item.id, "unchecked")
+		  }
+
+		  function updateParent(id, childChangedState) {
+		  	var parent = getParent(dataView.getIdxById(id));
+		  	if (parent == null) {
+		  		return;
+		  	}
+		  	var currentState = parent.selected;
+		  	if (childChangedState === "checked") {
+		  		var immediateChildren = getImmediateChildren(dataView.getIdxById(parent.id));
+		  		var allChecked = false;
+		  		for (let child of immediateChildren) {
+		  			if (child.selected === "checked") {
+		  				allChecked = true;
+		  			} else {
+		  				allChecked = false;
+		  				break;
+		  			}
+		  		}
+
+		  		if (allChecked) {
+		  			parent.selected = "checked";
+		  			dataView.updateItem(parent.id, parent);
+		  			updateParent(parent.id, "checked");
+		  		} else {
+		  			if (currentState !== "indeterminate") {
+		  				parent.selected = "indeterminate";
+			  			dataView.updateItem(parent.id, parent);
+			  			updateParent(parent.id, "indeterminate");	
+		  			}
+		  		}
+		  	} else if (childChangedState === "unchecked") {
+		  		var immediateChildren = getImmediateChildren(dataView.getIdxById(parent.id));
+	  			var allUnchecked = false;
+	  			for (let child of immediateChildren) {
+	  				if (child.selected === "unchecked") {
+	  					allUnchecked = true;
+	  				} else {
+	  					allUnchecked = false;
+	  					break;
+	  				}
+	  			}
+
+	  			if (allUnchecked) {
+	  				parent.selected = "unchecked";
+	  				dataView.updateItem(parent.id, parent);
+	  				updateParent(parent.id, "unchecked");
+	  			} else {
+	  				if (currentState !== "indeterminate") {
+	  					parent.selected = "indeterminate";
+	  					dataView.updateItem(parent.id, parent);
+		  				updateParent(parent.id, "indeterminate");	
+	  				}
+	  			}
+		  	}
+
+		}
+		  
 
 		  // wire up model events to drive the grid
 		  dataView.onRowCountChanged.subscribe(function (e, args) {
