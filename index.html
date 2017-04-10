@@ -105,6 +105,31 @@
 		  dataView.setFilter(myFilter);
 		  dataView.endUpdate();
 
+		  function getChildren(row) {
+		  	var currentItem = dataView.getItem(row);
+		  	var allItems = dataView.getItems();
+		  	var lastIndex = allItems.length - 1;
+		  	var children = [];
+		  	for(var i = row + 1; i <= lastIndex; i++) {
+		  		if (allItems[i].parent.id == row) {
+		  			children.push(allItems[i]);
+		  			var items = getChildren(i);
+		  			children.push(...items);
+		  		}
+		  	}
+		  	return children;
+		  }
+
+		  
+
+		  function getParent(row) {
+		  	var currentItem = dataView.getItem(row);
+		  	if (currentItem.parent === null) {
+		  		return null;	
+		  	} else {
+		  		return dataView.getItem(currentItem.parent.id);
+		  	}
+		  }
 
 		  // initialize the grid
 		  grid = new Slick.Grid("#myGrid", dataView, columns, options);
@@ -114,8 +139,8 @@
 		  });  
 
 		  grid.onClick.subscribe(function (e, args) {
+		  	var item = dataView.getItem(args.row);
 		    if ($(e.target).hasClass("toggle")) {
-		      var item = dataView.getItem(args.row);
 		      if (item) {
 		        if (!item._collapsed) {
 		          item._collapsed = true;
@@ -126,6 +151,11 @@
 		        dataView.updateItem(item.id, item);
 		      }
 		      e.stopImmediatePropagation();
+		    } else if ($(e.target).is(':checkbox')) {
+		    	var children = getChildren(args.row);
+		    	console.log(children.length);
+		    	var parent = getParent(args.row);
+		    	console.log(parent);
 		    }
 		  });
 
