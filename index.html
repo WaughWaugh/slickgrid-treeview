@@ -66,17 +66,13 @@
 			columnDef.width = 5;
 		};
 
-		// function CheckmarkFormatter(row, cell, value, columnDef, dataContext) {
-  //  			 return value ? "<img src='img/expand.gif'>" : "";
-  // 		}
+		
 
 		var dataView;
 		var grid;
 		var data = [];
 		var columns = [
-			{id: "title", name: "", field: "title", formatter: toggleFormatter}
-		    //{id: "test", name:"", field: "test", formatter: CheckmarkFormatter}
-		  
+			{id: "title", name: "", field: "title", formatter: toggleFormatter}		  
 		];
 
 		var options = { 
@@ -122,20 +118,15 @@
 		  dataView.setFilter(myFilter);
 		  dataView.endUpdate();
 
-		  //TODO: Need to merge logic of these 2 function
 		  function getChildren(row) {
-		  	var currentItem = dataView.getItem(row);
-		  	var allItems = dataView.getItems();
-		  	var lastIndex = allItems.length - 1;
-		  	var children = [];
-		  	for(var i = row + 1; i <= lastIndex; i++) {
-		  		if (allItems[i].parent.id == row) {
-		  			children.push(allItems[i]);
-		  			var items = getChildren(i);
-		  			children.push(...items);
-		  		}
+		  	var allChildren = [];
+		  	var immediateChildren = getImmediateChildren(row);
+		  	for (let child of immediateChildren) {
+		  		allChildren.push(child);
+		  		var items = getChildren(dataView.getIdxById(child.id));
+		  		allChildren.push(...items);
 		  	}
-		  	return children;
+		  	return allChildren;
 		  }
 
 		  function getImmediateChildren(row) {
@@ -155,11 +146,11 @@
 
 		  function getParent(row) {
 		  	var currentItem = dataView.getItem(row);
+
 		  	if (currentItem.parent === null) {
 		  		return null;	
-		  	} else {
-		  		return dataView.getItem(currentItem.parent.id);
-		  	}
+		  	} 
+		  	return dataView.getItemByIdx(currentItem.parent.id);;
 		  }
 
 		  // initialize the grid
@@ -220,56 +211,51 @@
 	    	updateParent(item.id, "unchecked")
 		  }
 
+		  function checkIfAllImmediateChildrenMatchesThisState(id, state) {
+		  	var immediateChildren = getImmediateChildren(dataView.getIdxById(id));
+		  	var all = true;
+		  	for (let child of immediateChildren) {
+	  			if (child.selected === state) {
+	  				all = true;
+	  			} else {
+	  				all = false;
+	  				break;
+	  			}
+	  		}
+	  		return all;
+		  }
+
+		  function setSelectedState(item, state) {
+		  	item.selected = state;
+		  	dataView.updateItem(item.id, item);
+		  	updateParent(item.id, state);
+		  }
+
 		  function updateParent(id, childChangedState) {
-		  	var parent = getParent(dataView.getIdxById(id));
+		  	var parent = getParent(dataView.getRowById(id));
 		  	if (parent == null) {
 		  		return;
 		  	}
 		  	var currentState = parent.selected;
 		  	if (childChangedState === "checked") {
-		  		var immediateChildren = getImmediateChildren(dataView.getIdxById(parent.id));
-		  		var allChecked = false;
-		  		for (let child of immediateChildren) {
-		  			if (child.selected === "checked") {
-		  				allChecked = true;
-		  			} else {
-		  				allChecked = false;
-		  				break;
-		  			}
-		  		}
+		  		
+		  		var allChecked = checkIfAllImmediateChildrenMatchesThisState(parent.id, "checked");
 
 		  		if (allChecked) {
-		  			parent.selected = "checked";
-		  			dataView.updateItem(parent.id, parent);
-		  			updateParent(parent.id, "checked");
+		  			setSelectedState(parent, "checked");
 		  		} else {
 		  			if (currentState !== "indeterminate") {
-		  				parent.selected = "indeterminate";
-			  			dataView.updateItem(parent.id, parent);
-			  			updateParent(parent.id, "indeterminate");	
+			  			setSelectedState(parent, "indeterminate");	
 		  			}
 		  		}
 		  	} else if (childChangedState === "unchecked") {
-		  		var immediateChildren = getImmediateChildren(dataView.getIdxById(parent.id));
-	  			var allUnchecked = false;
-	  			for (let child of immediateChildren) {
-	  				if (child.selected === "unchecked") {
-	  					allUnchecked = true;
-	  				} else {
-	  					allUnchecked = false;
-	  					break;
-	  				}
-	  			}
+	  			var allUnchecked = checkIfAllImmediateChildrenMatchesThisState(parent.id, "unchecked");
 
 	  			if (allUnchecked) {
-	  				parent.selected = "unchecked";
-	  				dataView.updateItem(parent.id, parent);
-	  				updateParent(parent.id, "unchecked");
+	  				setSelectedState(parent, "unchecked");
 	  			} else {
 	  				if (currentState !== "indeterminate") {
-	  					parent.selected = "indeterminate";
-	  					dataView.updateItem(parent.id, parent);
-		  				updateParent(parent.id, "indeterminate");	
+		  				setSelectedState(parent, "indeterminate");
 	  				}
 	  			}
 		  	}
