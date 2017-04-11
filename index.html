@@ -375,12 +375,12 @@
 	        	if (itemAtNextRow == null ) {
 	        		dataView.addItem(data);
 	        		dataView.updateItem(item.id, item);
-	        		
 	        	} else {
 	        		dataView.insertItem(dataView.getIdxById(itemAtNextRow.id), data);
 	        		dataView.updateItem(item.id, item);
 	        		dataView.updateItem(itemAtNextRow.id, itemAtNextRow);
 	        	}
+	        	uncheckItem(data);
 
 	        }
 
