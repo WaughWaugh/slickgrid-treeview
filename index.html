@@ -160,32 +160,7 @@
 		    dataView.updateItem(args.item.id, args.item);
 		  });  
 
-		  grid.onClick.subscribe(function (e, args) {
-		  	var item = dataView.getItem(args.row);
-		    if ($(e.target).hasClass("toggle")) {
-		      if (item) {
-		        if (!item._collapsed) {
-		          item._collapsed = true;
-		        } else {
-		          item._collapsed = false;
-		        }
-
-		        dataView.updateItem(item.id, item);
-		      }
-		      e.stopImmediatePropagation();
-		    } else if ($(e.target).hasClass('checkbox')) {
-		    	dataView.beginUpdate(); 
-		    	
-		    	if (item.selected === "unchecked") {
-		    		checkItem(item);
-		    	} else {
-		    		uncheckItem(item);
-		    	}
-		    	dataView.endUpdate();
-		    	
-		    }
-
-		  });
+		  
 
 		  function checkItem(item) {
 		  	item.selected = "checked";
@@ -262,6 +237,95 @@
 
 		}
 		  
+		grid.onClick.subscribe(function (e, args) {
+		  	var item = dataView.getItem(args.row);
+		    if ($(e.target).hasClass("toggle")) {
+		      if (item) {
+		        if (!item._collapsed) {
+		          item._collapsed = true;
+		        } else {
+		          item._collapsed = false;
+		        }
+
+		        dataView.updateItem(item.id, item);
+		      }
+		      e.stopImmediatePropagation();
+		    } else if ($(e.target).hasClass('checkbox')) {
+		    	dataView.beginUpdate(); 
+		    	
+		    	if (item.selected === "unchecked") {
+		    		checkItem(item);
+		    	} else {
+		    		uncheckItem(item);
+		    	}
+		    	dataView.endUpdate();
+		    	
+		    }
+
+		  });
+
+		var contextMenuOptions = {
+			"collapseAll" : 0,
+			"expandAll": 1
+		};
+
+		grid.onContextMenu.subscribe(function(e) {
+			console.log(e);
+			e.preventDefault();
+			var cell = grid.getCellFromEvent(e);
+			var contextMenu = $('#contextMenu');
+			var menuItems = contextMenu.children().children();
+
+			if ($(e.target).hasClass('toggle collapse')) {
+				console.log('Clicked toggle collapse ');
+				console.log(menuItems);
+				$(menuItems[contextMenuOptions.expandAll]).hide();
+				$(menuItems[contextMenuOptions.collapseAll]).show();
+
+			} else if ($(e.target).hasClass('toggle expand')) {
+				console.log('Toggle expand');
+				$(menuItems[contextMenuOptions.expandAll]).show();
+				$(menuItems[contextMenuOptions.collapseAll]).hide();
+			} else {
+
+			}
+
+			contextMenu
+                    .data("row", cell.row)
+                    .css("top", e.pageY)
+                    .css("left", e.pageX)
+                    .show();
+            $("body").on("click", function () {
+                    $('#contextMenu').hide();
+                });
+		})
+
+		function doActionForSubtree(item, isCollapsed) {
+			item._collapsed = isCollapsed;
+        	dataView.updateItem(item.id, item);
+        	var children = getChildren(dataView.getRowById(item.id));
+        	for (let child of children) {
+        		child._collapsed = isCollapsed;
+        		dataView.updateItem(child.id, child);
+        	}
+		}
+
+		$('#contextMenu').click(function(e) {
+			if (!$(e.target).data('action')){
+            	return;
+	        }
+            
+	        if ($(e.target).data('action') === 'collapseAll'){
+	        	var row = $(this).data("row");
+	        	var item = dataView.getItem(row);
+	        	doActionForSubtree(item, true);
+	        }
+	        if ($(e.target).data('action') === 'expandAll'){
+	            var row = $(this).data("row");
+	        	var item = dataView.getItem(row);
+	        	doActionForSubtree(item, false);
+	        }
+		});
 
 		  // wire up model events to drive the grid
 		  dataView.onRowCountChanged.subscribe(function (e, args) {
@@ -278,5 +342,11 @@
 </head>
 <body>
 	<div id="myGrid" style="width:600px;height:500px;"></div>
+	<div id="contextMenu" class="uk-dropdown uk-dropdown-small">
+		<ul class="uk-nav uk-nav-dropdown">
+            <li><a id="collapseAll" data-action="collapseAll">Collapse All</a></li>
+            <li><a id="expandAll" data-action="expandAll">Expand All</a></li>
+        </ul>
+	</div>
 </body>
 </html>
