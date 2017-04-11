@@ -266,7 +266,9 @@
 
 		var contextMenuOptions = {
 			"collapseAll" : 0,
-			"expandAll": 1
+			"expandAll": 1,
+			"addItem": 2,
+			"deleteItem": 3
 		};
 
 		grid.onContextMenu.subscribe(function(e) {
@@ -276,18 +278,23 @@
 			var contextMenu = $('#contextMenu');
 			var menuItems = contextMenu.children().children();
 
-			if ($(e.target).hasClass('toggle collapse')) {
-				console.log('Clicked toggle collapse ');
-				console.log(menuItems);
-				$(menuItems[contextMenuOptions.expandAll]).hide();
-				$(menuItems[contextMenuOptions.collapseAll]).show();
+			if ($(e.target).hasClass('toggle')) {
+				$(menuItems[contextMenuOptions.addItem]).hide();
+				$(menuItems[contextMenuOptions.deleteItem]).hide();
 
-			} else if ($(e.target).hasClass('toggle expand')) {
-				console.log('Toggle expand');
-				$(menuItems[contextMenuOptions.expandAll]).show();
-				$(menuItems[contextMenuOptions.collapseAll]).hide();
+				if ($(e.target).hasClass('toggle collapse')) {
+					$(menuItems[contextMenuOptions.expandAll]).hide();
+					$(menuItems[contextMenuOptions.collapseAll]).show();
+
+				} else if ($(e.target).hasClass('toggle expand')) {
+					$(menuItems[contextMenuOptions.expandAll]).show();
+					$(menuItems[contextMenuOptions.collapseAll]).hide();
+				}
 			} else {
-
+			 	$(menuItems[contextMenuOptions.expandAll]).hide();
+				$(menuItems[contextMenuOptions.collapseAll]).hide();	
+				$(menuItems[contextMenuOptions.addItem]).show();
+				$(menuItems[contextMenuOptions.deleteItem]).show();
 			}
 
 			contextMenu
@@ -325,6 +332,21 @@
 	        	var item = dataView.getItem(row);
 	        	doActionForSubtree(item, false);
 	        }
+	        if ($(e.target).data('action') === 'deleteItem') {
+	        	var row = $(this).data("row");
+	        	var item = dataView.getItem(row);
+	        	var parent = getParent(row);
+	        	var children = getChildren(row);
+	        	dataView.beginUpdate(); 
+	        	dataView.deleteItem(item.id);
+	        	for (let child of children) {
+	        		dataView.deleteItem(child.id);
+	        	}
+
+	        	updateParent(item.id, "unchecked");
+	        	dataView.endUpdate();
+	        }
+
 		});
 
 		  // wire up model events to drive the grid
@@ -346,6 +368,8 @@
 		<ul class="uk-nav uk-nav-dropdown">
             <li><a id="collapseAll" data-action="collapseAll">Collapse All</a></li>
             <li><a id="expandAll" data-action="expandAll">Expand All</a></li>
+            <li><a id="addItem" data-action="addItem">Add Item</a></li>
+            <li><a id="deleteItem" data-action="deleteItem">Delete Item</a></li>
         </ul>
 	</div>
 </body>
