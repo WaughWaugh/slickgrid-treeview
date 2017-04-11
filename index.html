@@ -85,13 +85,13 @@
 		function myFilter(item) {
 		  
 		  if (item.parent != null) {
-		    var parent = data[item.parent.id];
+		    var parent = dataView.getItemById(item.parent.id)//data[item.parent.id];
 		       
 		    while (parent) {
 		      if (parent._collapsed) {
 		        return false;
 		      }
-		        parent = data[parent.parent ? parent.parent.id : null];
+		        parent = parent.parent ? dataView.getItemById(parent.parent.id) : null;//data[parent.parent ? parent.parent.id : null];
 		         
 		    }
 		  }
@@ -104,12 +104,12 @@
 		$(function () {
 		  var indent = 0;
 		  data = [{id:1, selected: 'unchecked', title: '1-800-Flowers',  indent: 0, parent: null},
-		  {id:2, selected: 'unchecked', title: 'Agoura Hills',  indent: 1, parent:{id: 0}},
-		  {id:3, selected: 'unchecked', title: 'CA',  indent: 2, parent:{id: 1}},
-		  {id:4, selected: 'unchecked', title: 'United States',   indent: 3, parent:{id: 2}},
-		  {id:5, selected: 'unchecked', title: 'Alameda',  indent:  1, parent:{id: 0}},
-		  {id:6, selected: 'unchecked', title: 'CA',  indent: 2, parent: {id: 4} },
-		  {id:7, selected: 'unchecked', title: 'United States',  indent: 3, parent:{id: 5}}]
+		  {id:2, selected: 'unchecked', title: 'Agoura Hills',  indent: 1, parent:{id: 1}},
+		  {id:3, selected: 'unchecked', title: 'CA',  indent: 2, parent:{id: 2}},
+		  {id:4, selected: 'unchecked', title: 'United States',   indent: 3, parent:{id: 3}},
+		  {id:5, selected: 'unchecked', title: 'Alameda',  indent:  1, parent:{id: 1}},
+		  {id:6, selected: 'unchecked', title: 'CA',  indent: 2, parent: {id: 5} },
+		  {id:7, selected: 'unchecked', title: 'United States',  indent: 3, parent:{id: 6}}]
 		    		    
 		  // initialize the model
 		  dataView = new Slick.Data.DataView();
@@ -118,25 +118,27 @@
 		  dataView.setFilter(myFilter);
 		  dataView.endUpdate();
 
-		  function getChildren(row) {
+		  function getChildren(item) {
 		  	var allChildren = [];
-		  	var immediateChildren = getImmediateChildren(row);
+		  	var immediateChildren = getImmediateChildren(item);
 		  	for (let child of immediateChildren) {
 		  		allChildren.push(child);
-		  		var items = getChildren(dataView.getIdxById(child.id));
+		  		var items = getChildren(child);
 		  		allChildren.push(...items);
 		  	}
 		  	return allChildren;
 		  }
 
-		  function getImmediateChildren(row) {
-		  	var currentItem = dataView.getItem(row);
+		  function getImmediateChildren(item) {
 		  	var allItems = dataView.getItems();
 		  	var lastIndex = allItems.length - 1;
+		  	var itemIndex = dataView.getIdxById(item.id);
 		  	var children = [];
-		  	for(var i = row + 1; i <= lastIndex; i++) {
-		  		if (allItems[i].parent.id == row) {
-		  			children.push(allItems[i]);
+		  	for(var i = itemIndex + 1; i <= lastIndex; i++) {
+		  		var child = dataView.getItemByIdx(i);
+		  		var parent = dataView.getItemById(child.parent.id);
+		  		if (parent.id === item.id) {
+		  			children.push(child);
 		  		}
 		  	}
 		  	return children;
@@ -144,13 +146,11 @@
 		  }
 		  
 
-		  function getParent(row) {
-		  	var currentItem = dataView.getItem(row);
-
-		  	if (currentItem.parent === null) {
+		  function getParent(item) {
+		  	if (item.parent === null) {
 		  		return null;	
 		  	} 
-		  	return dataView.getItemByIdx(currentItem.parent.id);;
+		  	return dataView.getItemById(item.parent.id);;
 		  }
 
 		  // initialize the grid
@@ -165,29 +165,29 @@
 		  function checkItem(item) {
 		  	item.selected = "checked";
     		dataView.updateItem(item.id, item);
-	    	var children = getChildren(dataView.getIdxById(item.id));
+	    	var children = getChildren(item);
 	    	for (let child of children) {
 	    		child.selected = "checked";
 	    		dataView.updateItem(child.id, child);
 	    	}
 
-	    	updateParent(item.id, "checked");
+	    	updateParent(item, "checked");
 		  }
 
 		  function uncheckItem(item) {
 		  	item.selected = "unchecked";
     		dataView.updateItem(item.id, item);
-	    	var children = getChildren(dataView.getIdxById(item.id));
+	    	var children = getChildren(item);
 	    	for (let child of children) {
 	    		child.selected = "unchecked";
 	    		dataView.updateItem(child.id, child);
 	    	}
 
-	    	updateParent(item.id, "unchecked")
+	    	updateParent(item, "unchecked")
 		  }
 
 		  function checkIfAllImmediateChildrenMatchesThisState(id, state) {
-		  	var immediateChildren = getImmediateChildren(dataView.getIdxById(id));
+		  	var immediateChildren = getImmediateChildren(dataView.getItemById(id));
 		  	var all = true;
 		  	for (let child of immediateChildren) {
 	  			if (child.selected === state) {
@@ -203,11 +203,11 @@
 		  function setSelectedState(item, state) {
 		  	item.selected = state;
 		  	dataView.updateItem(item.id, item);
-		  	updateParent(item.id, state);
+		  	updateParent(item, state);
 		  }
 
-		  function updateParent(id, childChangedState) {
-		  	var parent = getParent(dataView.getRowById(id));
+		  function updateParent(item, childChangedState) {
+		  	var parent = getParent(item);
 		  	if (parent == null) {
 		  		return;
 		  	}
@@ -310,7 +310,7 @@
 		function doActionForSubtree(item, isCollapsed) {
 			item._collapsed = isCollapsed;
         	dataView.updateItem(item.id, item);
-        	var children = getChildren(dataView.getRowById(item.id));
+        	var children = getChildren(item);
         	for (let child of children) {
         		child._collapsed = isCollapsed;
         		dataView.updateItem(child.id, child);
@@ -335,16 +335,17 @@
 	        if ($(e.target).data('action') === 'deleteItem') {
 	        	var row = $(this).data("row");
 	        	var item = dataView.getItem(row);
-	        	var parent = getParent(row);
-	        	var children = getChildren(row);
+	        	var parent = getParent(item);
+	        	var children = getChildren(item);
 	        	dataView.beginUpdate(); 
-	        	dataView.deleteItem(item.id);
+	        	uncheckItem(item);
 	        	for (let child of children) {
 	        		dataView.deleteItem(child.id);
 	        	}
-
-	        	updateParent(item.id, "unchecked");
+	        	dataView.deleteItem(item.id);
 	        	dataView.endUpdate();
+	        	
+	        	
 	        }
 
 		});
