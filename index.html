@@ -376,6 +376,8 @@
 	        		
 	        	} else {
 	        		dataView.insertItem(dataView.getIdxById(itemAtNextRow.id), data);
+	        		dataView.updateItem(item.id, item);
+	        		dataView.updateItem(itemAtNextRow.id, itemAtNextRow);
 	        	}
 
 	        }
